@@ -208,6 +208,16 @@ def demo(
     metrics = compute_metrics(results)
     print_summary(metrics)
 
+    # Save metrics CSV
+    metrics_path = "demo_results_metrics.csv"
+    metrics.to_csv(metrics_path, index=False)
+    typer.echo(f"\n  Metrics saved to {metrics_path}")
+
+    # Generate detailed report
+    report_path = "demo_results_report.txt"
+    generate_report(results, report_path)
+    typer.echo(f"  Report saved to {report_path}")
+
     typer.echo("\nDemo complete! Run full evaluation with: rope run")
 
 
