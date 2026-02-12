@@ -64,11 +64,30 @@ def run(
         "--seed",
         help="Random seed for reproducibility",
     ),
+    judge: str = typer.Option(
+        "llama3-8b",
+        "--judge",
+        "-j",
+        help="Model to use as judge (e.g., llama3-8b, phi2)",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Save full debug info (defended prompts, raw judge output, full responses)",
+    ),
+    resume: bool = typer.Option(
+        False,
+        "--resume",
+        help="Resume from checkpoint: skip (model, defense) pairs already in the output file",
+    ),
 ) -> None:
     """Run full ROPE evaluation.
 
     Example:
         rope run --models llama2-7b --defenses none,delimiter
+        rope run --models phi2 --judge phi2 --verbose
+        rope run --resume -o results.json
     """
     # Parse inputs
     model_list = [m.strip() for m in models.split(",")]
@@ -80,6 +99,12 @@ def run(
             typer.echo(f"Error: Unknown model: {m}", err=True)
             typer.echo(f"Available: {list(MODELS.keys())}", err=True)
             sys.exit(1)
+
+    # Validate judge
+    if judge not in MODELS:
+        typer.echo(f"Error: Unknown judge model: {judge}", err=True)
+        typer.echo(f"Available: {list(MODELS.keys())}", err=True)
+        sys.exit(1)
 
     # Validate defenses
     for d in defense_list:
@@ -104,7 +129,10 @@ def run(
     typer.echo("=" * 70)
     typer.echo(f"Models: {model_list}")
     typer.echo(f"Defenses: {defense_list}")
+    typer.echo(f"Judge: {judge}")
     typer.echo(f"Output: {output}")
+    typer.echo(f"Verbose: {verbose}")
+    typer.echo(f"Resume: {resume}")
     typer.echo(f"Seed: {seed}")
     typer.echo("=" * 70 + "\n")
 
@@ -116,11 +144,14 @@ def run(
         tasks_path=tasks,
         attacks_path=attacks,
         seed=seed,
+        judge_model_name=judge,
+        verbose=verbose,
+        resume=resume,
     )
 
     # Compute and display metrics
     metrics = compute_metrics(results)
-    print_summary(metrics)
+    print_summary(metrics, results)
 
     # Save metrics CSV
     metrics_path = output.replace(".json", "_metrics.csv")
@@ -139,6 +170,12 @@ def demo(
         "--cpu",
         help="CPU-only demo: use Phi-2 only (one model in RAM). Use this if you have no GPU or hit 'paging file too small'.",
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Save full debug info (defended prompts, raw judge output, full responses)",
+    ),
 ) -> None:
     """Run quick demo (1 model, 2 defenses, first 20 attacks).
 
@@ -147,6 +184,7 @@ def demo(
     Example:
         rope demo
         rope demo --cpu
+        rope demo --verbose
     """
     import torch
 
@@ -182,6 +220,7 @@ def demo(
             attacks_path=demo_attacks_path,
             judge_model_name="phi2",
             reuse_judge_for_model="phi2",
+            verbose=verbose,
         )
         Path(demo_attacks_path).unlink(missing_ok=True)
     else:
@@ -201,12 +240,13 @@ def demo(
             defense_names=["none", "delimiter"],
             output_path="demo_results.json",
             attacks_path=demo_attacks_path,
+            verbose=verbose,
         )
         Path(demo_attacks_path).unlink(missing_ok=True)
 
     # Display results
     metrics = compute_metrics(results)
-    print_summary(metrics)
+    print_summary(metrics, results)
 
     # Save metrics CSV
     metrics_path = "demo_results_metrics.csv"

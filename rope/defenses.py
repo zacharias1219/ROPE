@@ -64,6 +64,7 @@ def paraphrase(prompt: str, paraphrase_model=None, paraphrase_tokenizer=None) ->
         Paraphrased version of prompt.
     """
     if paraphrase_model is None or paraphrase_tokenizer is None:
+        print("  Warning: Paraphrase model not loaded, passing prompt through unchanged.")
         return prompt
 
     import torch
@@ -79,16 +80,20 @@ def paraphrase(prompt: str, paraphrase_model=None, paraphrase_tokenizer=None) ->
     )
     inputs = {k: v.to(paraphrase_model.device) for k, v in inputs.items()}
 
-    with torch.no_grad():
-        outputs = paraphrase_model.generate(
-            **inputs,
-            max_new_tokens=256,
-            num_beams=4,
-            early_stopping=True,
-        )
+    try:
+        with torch.no_grad():
+            outputs = paraphrase_model.generate(
+                **inputs,
+                max_new_tokens=256,
+                num_beams=4,
+                early_stopping=True,
+            )
 
-    paraphrased = paraphrase_tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return paraphrased if paraphrased.strip() else prompt
+        paraphrased = paraphrase_tokenizer.decode(outputs[0], skip_special_tokens=True)
+        return paraphrased if paraphrased.strip() else prompt
+    except Exception as e:
+        print(f"  Warning: Paraphrase generation failed: {e}. Using original prompt.")
+        return prompt
 
 
 def icl(prompt: str) -> str:

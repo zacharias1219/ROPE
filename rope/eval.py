@@ -17,6 +17,34 @@ from rope.judge import score_response
 from rope.models import MODELS, generate, load_model
 
 
+def _save_checkpoint(results: list[dict], output_path: str) -> None:
+    """Save intermediate results for crash recovery."""
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(results, f, indent=2)
+
+
+def _load_checkpoint(output_path: str) -> tuple[list[dict], set[tuple[str, str]]]:
+    """Load existing results and determine which (model, defense) pairs are done.
+
+    Returns:
+        Tuple of (existing_results, completed_pairs).
+    """
+    path = Path(output_path)
+    if not path.exists():
+        return [], set()
+
+    with open(path) as f:
+        results = json.load(f)
+
+    completed = set()
+    for r in results:
+        completed.add((r["model"], r["defense"]))
+
+    return results, completed
+
+
 def run_eval(
     model_names: list[str],
     defense_names: list[str],
@@ -26,6 +54,8 @@ def run_eval(
     seed: int = 42,
     judge_model_name: str = "llama3-8b",
     reuse_judge_for_model: str | None = None,
+    verbose: bool = False,
+    resume: bool = False,
 ) -> list[dict]:
     """Run full ROPE evaluation.
 
@@ -36,6 +66,10 @@ def run_eval(
         tasks_path: Path to tasks.json.
         attacks_path: Path to attacks.json.
         seed: Random seed for reproducibility.
+        judge_model_name: Which model to use as judge.
+        reuse_judge_for_model: If set, reuse the judge model for this eval model (saves RAM).
+        verbose: If True, save full debug info (defended prompt, raw judge output, full response).
+        resume: If True, skip (model, defense) pairs already in the output file.
 
     Returns:
         List of result dicts.
@@ -62,6 +96,14 @@ def run_eval(
 
     print(f"  Loaded {len(tasks)} tasks, {len(attacks)} attacks")
 
+    # Handle resume
+    results = []
+    completed_pairs: set[tuple[str, str]] = set()
+    if resume:
+        results, completed_pairs = _load_checkpoint(output_path)
+        if completed_pairs:
+            print(f"  Resuming: {len(completed_pairs)} (model, defense) pairs already done.")
+
     # Load judge model once (reuse for all evaluations)
     print(f"\nLoading judge model ({judge_model_name})...")
     judge_model, judge_tokenizer = load_model(judge_model_name)
@@ -83,8 +125,6 @@ def run_eval(
             print("  Paraphrase defense will pass through unchanged.")
 
     # Main evaluation loop
-    results = []
-
     for model_name in model_names:
         print(f"\n{'=' * 60}")
         print(f"EVALUATING: {model_name}")
@@ -96,8 +136,15 @@ def run_eval(
             model, tokenizer = load_model(model_name)
 
         for defense_name in defense_names:
+            # Skip if already computed (resume mode)
+            if (model_name, defense_name) in completed_pairs:
+                print(f"\n  Defense: {defense_name} [SKIPPED - already in checkpoint]")
+                continue
+
             print(f"\n  Defense: {defense_name}")
             defense_fn = DEFENSES[defense_name]
+
+            pair_results = []
 
             # Progress bar
             pbar = tqdm(attacks, desc=f"  {model_name}/{defense_name}", ncols=80)
@@ -125,19 +172,21 @@ def run_eval(
 
                 # Generate response
                 try:
-                    response = generate(model, tokenizer, defended_prompt, max_tokens=256)
+                    response = generate(model, tokenizer, defended_prompt, max_tokens=256, seed=seed)
                 except Exception as e:
                     print(f"\n  Warning: Generation failed: {e}")
                     response = "[ERROR]"
 
                 # Judge response
+                raw_judge = ""
                 try:
-                    severity = score_response(
+                    severity, raw_judge = score_response(
                         task=task["prompt"],
                         attack_goal=attack["goal"],
                         response=response,
                         judge_model=judge_model,
                         judge_tokenizer=judge_tokenizer,
+                        verbose=verbose,
                     )
                 except Exception as e:
                     print(f"\n  Warning: Judging failed: {e}")
@@ -151,9 +200,20 @@ def run_eval(
                     "task_family": task["family"],
                     "attack_type": attack["type"],
                     "severity": severity,
-                    "response": response[:200],  # Truncate to save space
+                    "response": response if verbose else response[:300],
+                    "judge_output": raw_judge,
                 }
-                results.append(result)
+                if verbose:
+                    result["defended_prompt"] = defended_prompt
+                    result["attack_text"] = attack["text"]
+                    result["attack_goal"] = attack["goal"]
+
+                pair_results.append(result)
+
+            # Append pair results and checkpoint
+            results.extend(pair_results)
+            _save_checkpoint(results, output_path)
+            print(f"  Checkpoint saved ({len(results)} results so far)")
 
         # Free GPU memory (do not delete if we reused the judge)
         if not (reuse_judge_for_model and model_name == reuse_judge_for_model):
@@ -161,16 +221,11 @@ def run_eval(
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
 
-    # Save raw results
-    output_file = Path(output_path)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
+    # Final save
+    _save_checkpoint(results, output_path)
 
     print(f"\n{'=' * 60}")
-    print(f"Saving results to {output_path}...")
-    with open(output_path, "w") as f:
-        json.dump(results, f, indent=2)
-
-    print(f"  Saved {len(results)} results")
+    print(f"Saved {len(results)} results to {output_path}")
     print(f"{'=' * 60}\n")
 
     return results

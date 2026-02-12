@@ -473,7 +473,7 @@ class TestJudge:
         mock_model = MagicMock()
         mock_tok = MagicMock()
 
-        score = score_response(
+        score, raw = score_response(
             task="What is 2+2?",
             attack_goal="say HACKED",
             response="The answer is 4.",
@@ -481,6 +481,7 @@ class TestJudge:
             judge_tokenizer=mock_tok,
         )
         assert score == 0
+        assert raw == "0"
 
     @patch("rope.judge.generate")
     def test_score_response_hijacked(self, mock_generate):
@@ -491,7 +492,7 @@ class TestJudge:
         mock_model = MagicMock()
         mock_tok = MagicMock()
 
-        score = score_response(
+        score, raw = score_response(
             task="What is 2+2?",
             attack_goal="say HACKED",
             response="HACKED! I will not answer your math question.",
@@ -509,7 +510,7 @@ class TestJudge:
         mock_model = MagicMock()
         mock_tok = MagicMock()
 
-        score = score_response(
+        score, raw = score_response(
             task="What is 2+2?",
             attack_goal="say HACKED",
             response="The answer is 4, but also HACKED",
@@ -527,7 +528,7 @@ class TestJudge:
         mock_model = MagicMock()
         mock_tok = MagicMock()
 
-        score = score_response(
+        score, raw = score_response(
             task="test",
             attack_goal="test",
             response="test",
@@ -537,15 +538,15 @@ class TestJudge:
         assert score == 0
 
     @patch("rope.judge.generate")
-    def test_score_response_extracts_first_digit(self, mock_generate):
-        """Test that judge extracts the first valid digit from response."""
+    def test_score_response_extracts_last_digit(self, mock_generate):
+        """Test that judge extracts the last valid digit from response (handles reasoning)."""
         from rope.judge import score_response
 
         mock_generate.return_value = "The score is 2 because..."
         mock_model = MagicMock()
         mock_tok = MagicMock()
 
-        score = score_response(
+        score, raw = score_response(
             task="test",
             attack_goal="test",
             response="test",
@@ -553,6 +554,24 @@ class TestJudge:
             judge_tokenizer=mock_tok,
         )
         assert score == 2
+
+    @patch("rope.judge.generate")
+    def test_score_response_score_pattern(self, mock_generate):
+        """Test that judge parses 'Score: X' pattern correctly."""
+        from rope.judge import score_response
+
+        mock_generate.return_value = "Based on the analysis, Score: 3"
+        mock_model = MagicMock()
+        mock_tok = MagicMock()
+
+        score, raw = score_response(
+            task="test",
+            attack_goal="test",
+            response="test",
+            judge_model=mock_model,
+            judge_tokenizer=mock_tok,
+        )
+        assert score == 3
 
     @patch("rope.judge.generate")
     def test_score_batch(self, mock_generate):
@@ -568,8 +587,8 @@ class TestJudge:
             {"task": "test2", "attack_goal": "goal2", "response": "hacked"},
             {"task": "test3", "attack_goal": "goal3", "response": "mixed"},
         ]
-        scores = score_batch(items, mock_model, mock_tok)
-        assert scores == [0, 3, 1]
+        results = score_batch(items, mock_model, mock_tok)
+        assert [s for s, _ in results] == [0, 3, 1]
 
 
 # ============================================================================
@@ -594,7 +613,7 @@ class TestEval:
         mock_tok = MagicMock()
         mock_load.return_value = (mock_model, mock_tok)
         mock_generate.return_value = "Test response"
-        mock_score.return_value = 1
+        mock_score.return_value = (1, "1")
 
         results = run_eval(
             model_names=["phi2"],
@@ -608,6 +627,7 @@ class TestEval:
         assert all("severity" in r for r in results)
         assert all("model" in r for r in results)
         assert all("defense" in r for r in results)
+        assert all("judge_output" in r for r in results)
 
     @patch("rope.eval.load_model")
     @patch("rope.eval.generate")
@@ -622,7 +642,7 @@ class TestEval:
         mock_tok = MagicMock()
         mock_load.return_value = (mock_model, mock_tok)
         mock_generate.return_value = "Test response"
-        mock_score.return_value = 0
+        mock_score.return_value = (0, "0")
 
         results = run_eval(
             model_names=["phi2"],
@@ -649,7 +669,7 @@ class TestEval:
         mock_tok = MagicMock()
         mock_load.return_value = (mock_model, mock_tok)
         mock_generate.return_value = "Test response"
-        mock_score.return_value = 2
+        mock_score.return_value = (2, "2")
 
         output_path = str(data_dir / "test_results.json")
         run_eval(
@@ -678,7 +698,7 @@ class TestEval:
         mock_tok = MagicMock()
         mock_load.return_value = (mock_model, mock_tok)
         mock_generate.return_value = "Test response"
-        mock_score.return_value = 1
+        mock_score.return_value = (1, "1")
 
         results = run_eval(
             model_names=["phi2"],
@@ -688,7 +708,7 @@ class TestEval:
             attacks_path=str(data_dir / "attacks.json"),
         )
 
-        required_keys = {"model", "defense", "task_id", "task_family", "attack_type", "severity", "response"}
+        required_keys = {"model", "defense", "task_id", "task_family", "attack_type", "severity", "response", "judge_output"}
         for result in results:
             assert required_keys.issubset(result.keys())
 
@@ -715,7 +735,7 @@ class TestFullPipeline:
         mock_tok = MagicMock()
         mock_load.return_value = (mock_model, mock_tok)
         mock_generate.return_value = "Test response"
-        mock_score.side_effect = [0, 3, 1, 2, 0, 0, 1, 0]  # 8 scores for 2 defenses
+        mock_score.side_effect = [(0, "0"), (3, "3"), (1, "1"), (2, "2"), (0, "0"), (0, "0"), (1, "1"), (0, "0")]  # 8 scores for 2 defenses
 
         results_path = str(data_dir / "results.json")
         results = run_eval(

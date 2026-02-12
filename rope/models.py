@@ -64,7 +64,7 @@ def load_model(
         "quantization_config": quantization_config,
         "device_map": device_map,
         "trust_remote_code": True,
-        "torch_dtype": torch.float16 if torch.cuda.is_available() else torch.float32,
+        "dtype": torch.float16 if torch.cuda.is_available() else torch.float32,
     }
     if use_cpu:
         kwargs["low_cpu_mem_usage"] = True
