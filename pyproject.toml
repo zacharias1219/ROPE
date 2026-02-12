@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rope-bench"
+version = "1.0.0"
+description = "Prompt Injection Robustness Evaluation for Local LLMs"
+authors = [{name = "Richard", email = "richard@example.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.36.0",
+    "accelerate>=0.25.0",
+    "bitsandbytes>=0.41.0",
+    "pandas>=2.0.0",
+    "tqdm>=4.65.0",
+    "typer>=0.9.0",
+    "rich>=13.0.0",
+    "numpy>=1.24.0",
+    "sentencepiece>=0.1.99",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+]
+paraphrase = [
+    "sentencepiece>=0.1.99",
+]
+
+[project.scripts]
+rope = "rope.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/rope-bench"
+Documentation = "https://rope-bench.readthedocs.io"
+Repository = "https://github.com/yourusername/rope-bench"
+
+[tool.setuptools.packages.find]
+include = ["rope*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v"
+
+[tool.black]
+line-length = 100
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"

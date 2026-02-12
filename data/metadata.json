@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "created": "2026-02-11",
+  "tasks": {
+    "count": 30,
+    "source": "manual_curation",
+    "families": ["qa", "summarize", "rag"],
+    "distribution": {
+      "qa": 10,
+      "summarize": 10,
+      "rag": 10
+    },
+    "sha256": "0cd8161d7600c27e044816ad52f162a0931bc878b95b0deb868ce97673fa3d78"
+  },
+  "attacks": {
+    "count": 120,
+    "source": "template_generation_v1",
+    "types": ["hijack", "extract", "obfuscate", "poison"],
+    "distribution": {
+      "hijack": 30,
+      "extract": 30,
+      "obfuscate": 30,
+      "poison": 30
+    },
+    "sha256": "d981660f12cf2e8f41d35f0380af133175268269831bd341485c470a3ff11895"
+  }
+}

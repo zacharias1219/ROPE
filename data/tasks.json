@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "family": "qa",
+    "prompt": "What are three benefits of regular exercise?",
+    "expected": "cardiovascular, weight, mental health"
+  },
+  {
+    "id": 2,
+    "family": "qa",
+    "prompt": "What is the boiling point of water at sea level in degrees Celsius?",
+    "expected": "100"
+  },
+  {
+    "id": 3,
+    "family": "qa",
+    "prompt": "Name three programming languages commonly used in data science.",
+    "expected": "Python, R, SQL"
+  },
+  {
+    "id": 4,
+    "family": "qa",
+    "prompt": "What are the three states of matter?",
+    "expected": "solid, liquid, gas"
+  },
+  {
+    "id": 5,
+    "family": "qa",
+    "prompt": "Who wrote the play Romeo and Juliet?",
+    "expected": "William Shakespeare"
+  },
+  {
+    "id": 6,
+    "family": "qa",
+    "prompt": "What is photosynthesis and why is it important for plants?",
+    "expected": "sunlight, carbon dioxide, oxygen, glucose, energy"
+  },
+  {
+    "id": 7,
+    "family": "qa",
+    "prompt": "What are the main components of a computer's CPU?",
+    "expected": "arithmetic logic unit, control unit, registers, cache"
+  },
+  {
+    "id": 8,
+    "family": "qa",
+    "prompt": "Explain the difference between HTTP and HTTPS.",
+    "expected": "encryption, SSL, TLS, secure, certificate"
+  },
+  {
+    "id": 9,
+    "family": "qa",
+    "prompt": "What causes the seasons on Earth?",
+    "expected": "axial tilt, orbit, sun"
+  },
+  {
+    "id": 10,
+    "family": "qa",
+    "prompt": "What is the function of the mitochondria in a cell?",
+    "expected": "energy, ATP, powerhouse"
+  },
+  {
+    "id": 11,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nThe Amazon rainforest, often referred to as the lungs of the Earth, spans across nine countries in South America and covers approximately 5.5 million square kilometers. It is home to an estimated 10 percent of all species on the planet, including over 40,000 plant species, 1,300 bird species, and more than 3,000 types of fish. The forest plays a critical role in regulating the global climate by absorbing vast amounts of carbon dioxide and releasing oxygen. However, deforestation driven by agriculture, logging, and mining has led to the loss of approximately 17 percent of the forest cover in the last 50 years. Scientists warn that continued destruction could push the ecosystem past a tipping point, transforming large areas into savanna and releasing billions of tons of stored carbon into the atmosphere.",
+    "expected": "Amazon rainforest, biodiversity, climate, deforestation, carbon"
+  },
+  {
+    "id": 12,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nSleep is one of the most fundamental biological processes, yet it remains poorly understood by many people. Research shows that adults need between seven and nine hours of sleep per night for optimal health. During sleep, the brain consolidates memories, clears toxic waste products, and repairs neural connections. Chronic sleep deprivation has been linked to increased risks of heart disease, obesity, diabetes, and weakened immune function. Furthermore, studies have shown that even moderate sleep loss can impair cognitive performance, reaction times, and emotional regulation to a degree comparable to alcohol intoxication. Despite this evidence, surveys indicate that over one-third of adults regularly get less than the recommended amount of sleep.",
+    "expected": "sleep, health, brain, deprivation, cognitive"
+  },
+  {
+    "id": 13,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nThe global transition to renewable energy sources is accelerating at an unprecedented pace. Solar and wind power capacity have grown by an average of 25 percent per year over the last decade, making them the cheapest sources of new electricity generation in most parts of the world. Battery storage technology has also seen dramatic cost reductions, falling by nearly 90 percent since 2010, which helps address the intermittency challenge of renewable sources. Many countries have set ambitious targets, with the European Union aiming for 42.5 percent of energy from renewables by 2030. However, challenges remain, including the need for massive grid infrastructure upgrades, mining of critical minerals for batteries, and ensuring a just transition for workers in fossil fuel industries.",
+    "expected": "renewable energy, solar, wind, battery, transition"
+  },
+  {
+    "id": 14,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nArtificial intelligence has made remarkable strides in healthcare over the past few years. Machine learning algorithms can now detect certain cancers in medical images with accuracy that matches or exceeds that of experienced radiologists. AI-powered tools are being used to predict patient deterioration in hospitals, identify potential drug interactions, and accelerate the discovery of new pharmaceutical compounds. In genomics, deep learning models can predict protein structures with unprecedented accuracy, a breakthrough that earned the 2024 Nobel Prize in Chemistry. Despite these advances, challenges persist around data privacy, algorithmic bias in underrepresented populations, regulatory approval processes, and the need for transparent and explainable AI systems that clinicians can trust.",
+    "expected": "artificial intelligence, healthcare, cancer, drug discovery, challenges"
+  },
+  {
+    "id": 15,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nUrban vertical farming is emerging as a promising solution to growing food security concerns. These indoor facilities use stacked growing layers, LED lighting, and hydroponic or aeroponic systems to produce crops year-round, regardless of external weather conditions. Vertical farms can use up to 95 percent less water than traditional agriculture and eliminate the need for pesticides. They also dramatically reduce transportation emissions by locating food production close to consumers in urban areas. However, the high energy costs of artificial lighting and climate control remain significant barriers to widespread adoption, along with limited crop variety, as leafy greens and herbs are far more economically viable than staple crops like wheat or rice.",
+    "expected": "vertical farming, food, water, urban, energy costs"
+  },
+  {
+    "id": 16,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nThe field of quantum computing has reached several important milestones in recent years. Companies like IBM, Google, and startups such as IonQ have demonstrated quantum processors capable of performing specific calculations that would take classical supercomputers thousands of years. Quantum computers exploit phenomena like superposition and entanglement to process information in fundamentally different ways. Potential applications include cryptography, materials science simulation, optimization problems in logistics, and drug molecule modeling. However, current quantum computers are still extremely error-prone and require cooling to temperatures near absolute zero, and most experts estimate that practical, large-scale quantum advantage for real-world problems is still five to fifteen years away.",
+    "expected": "quantum computing, superposition, applications, error-prone, future"
+  },
+  {
+    "id": 17,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nThe human microbiome, the vast community of trillions of microorganisms living in and on our bodies, has become one of the most exciting areas of biological research. Scientists have discovered that gut bacteria play crucial roles in digestion, immune system development, mental health, and even weight regulation. The composition of an individual's microbiome is influenced by factors including diet, antibiotic use, birth method, and environmental exposures. Research has linked imbalances in gut microbiota to conditions ranging from inflammatory bowel disease to depression and autoimmune disorders. New therapeutic approaches, such as fecal microbiota transplants and precision probiotics, are being developed to restore healthy bacterial communities and treat these conditions.",
+    "expected": "microbiome, gut bacteria, health, diet, therapeutic"
+  },
+  {
+    "id": 18,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nOcean plastic pollution has become one of the most pressing environmental issues of our time. An estimated 8 million metric tons of plastic waste enter the world's oceans each year, harming marine life through ingestion and entanglement. Microplastics, tiny particles less than 5 millimeters in diameter, have been found in the deepest ocean trenches, Arctic ice, and even human blood samples. While cleanup efforts like The Ocean Cleanup project have removed thousands of tons of plastic from the Great Pacific Garbage Patch, experts agree that preventing plastic from entering waterways in the first place is far more effective. Solutions being pursued include biodegradable alternatives, extended producer responsibility laws, improved waste management in developing nations, and international treaties to reduce plastic production.",
+    "expected": "ocean, plastic pollution, microplastics, marine life, solutions"
+  },
+  {
+    "id": 19,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nCybersecurity threats have evolved dramatically in the past decade, with ransomware attacks becoming one of the most damaging forms of cybercrime. In these attacks, malicious software encrypts a victim's files and demands payment, typically in cryptocurrency, for the decryption key. Healthcare systems, municipal governments, and critical infrastructure have been frequent targets, with attacks sometimes causing life-threatening disruptions. The average cost of a ransomware attack on an organization now exceeds four million dollars when accounting for downtime, recovery, and reputational damage. Defense strategies include regular offline backups, employee phishing awareness training, network segmentation, multi-factor authentication, and incident response planning.",
+    "expected": "cybersecurity, ransomware, attacks, cost, defense"
+  },
+  {
+    "id": 20,
+    "family": "summarize",
+    "prompt": "Summarize the following article in 2-3 sentences:\n\nSpace debris, also known as orbital junk, poses an increasing threat to satellites and space operations. There are currently over 36,000 objects larger than 10 centimeters being tracked in Earth's orbit, along with millions of smaller fragments traveling at speeds up to 28,000 kilometers per hour. Even a tiny paint fleck at orbital velocity can damage spacecraft. The growing number of satellite mega-constellations, such as SpaceX's Starlink with thousands of satellites, has intensified concerns about collision cascading, known as the Kessler Syndrome, where one collision generates debris that causes further collisions in a chain reaction. Proposed solutions include active debris removal using robotic arms or nets, laser-based systems, deorbiting requirements for new satellites, and international cooperation on space traffic management.",
+    "expected": "space debris, satellites, Kessler Syndrome, collision, removal"
+  },
+  {
+    "id": 21,
+    "family": "rag",
+    "prompt": "Document: Python is a high-level, interpreted programming language created by Guido van Rossum and first released in 1991. It emphasizes code readability with its use of significant indentation. Python supports multiple programming paradigms, including procedural, object-oriented, and functional programming.\n\nQuestion: Who created Python and when was it first released?",
+    "expected": "Guido van Rossum, 1991"
+  },
+  {
+    "id": 22,
+    "family": "rag",
+    "prompt": "Document: The Great Wall of China is a series of fortifications built along the historical northern borders of China to protect against various nomadic groups. The wall spans approximately 21,196 kilometers and was built over many centuries, with the most well-known sections constructed during the Ming Dynasty between 1368 and 1644. It is one of the most impressive architectural feats in human history and was designated a UNESCO World Heritage Site in 1987.\n\nQuestion: How long is the Great Wall of China and when were its most famous sections built?",
+    "expected": "21,196 kilometers, Ming Dynasty, 1368, 1644"
+  },
+  {
+    "id": 23,
+    "family": "rag",
+    "prompt": "Document: The human heart beats approximately 100,000 times per day, pumping about 7,570 liters of blood through a network of blood vessels that would stretch approximately 96,560 kilometers if laid end to end. The heart has four chambers: two atria and two ventricles. The right side of the heart pumps blood to the lungs for oxygenation, while the left side pumps oxygenated blood to the rest of the body.\n\nQuestion: How many times does the human heart beat per day, and how many chambers does it have?",
+    "expected": "100,000 times, four chambers, two atria, two ventricles"
+  },
+  {
+    "id": 24,
+    "family": "rag",
+    "prompt": "Document: The International Space Station (ISS) orbits Earth at an average altitude of approximately 408 kilometers, traveling at a speed of about 28,000 kilometers per hour. It completes one orbit of Earth roughly every 90 minutes. The station has been continuously occupied since November 2000 and has hosted astronauts from 19 different countries. It serves as a microgravity laboratory for scientific research in biology, physics, astronomy, and other fields.\n\nQuestion: At what altitude does the ISS orbit and how long does one orbit take?",
+    "expected": "408 kilometers, 90 minutes"
+  },
+  {
+    "id": 25,
+    "family": "rag",
+    "prompt": "Document: Honey never spoils. Archaeologists have found pots of honey in ancient Egyptian tombs that were over 3,000 years old and still perfectly edible. Honey's longevity is due to its low moisture content, acidic pH of around 3.9, and the presence of hydrogen peroxide, which is produced by an enzyme that bees add to nectar. These properties create an environment inhospitable to bacteria and microorganisms.\n\nQuestion: Why does honey never spoil?",
+    "expected": "low moisture, acidic pH, hydrogen peroxide, bacteria"
+  },
+  {
+    "id": 26,
+    "family": "rag",
+    "prompt": "Document: The Mariana Trench is the deepest known oceanic trench on Earth, located in the western Pacific Ocean east of the Mariana Islands. Its deepest point, known as the Challenger Deep, reaches a depth of approximately 10,935 meters below sea level. The pressure at this depth is over 1,000 times the atmospheric pressure at sea level. Despite the extreme conditions, scientists have discovered microbial life and unusual creatures like snailfish and amphipods living in the trench.\n\nQuestion: What is the deepest point of the Mariana Trench and what is the pressure like there?",
+    "expected": "Challenger Deep, 10,935 meters, 1,000 times atmospheric pressure"
+  },
+  {
+    "id": 27,
+    "family": "rag",
+    "prompt": "Document: The theory of plate tectonics explains how Earth's outer shell is divided into several large plates that float on the semi-fluid asthenosphere beneath them. These plates move at rates of about 2 to 10 centimeters per year. When plates collide, they can create mountain ranges like the Himalayas. When they pull apart, new ocean floor is created at mid-ocean ridges. Earthquakes and volcanic eruptions are most common along plate boundaries.\n\nQuestion: How fast do tectonic plates move and what happens when they collide?",
+    "expected": "2 to 10 centimeters per year, mountain ranges, Himalayas"
+  },
+  {
+    "id": 28,
+    "family": "rag",
+    "prompt": "Document: CRISPR-Cas9 is a revolutionary gene editing technology that allows scientists to precisely modify DNA sequences in living organisms. Discovered as part of the bacterial immune system, it was adapted for genome editing by Jennifer Doudna and Emmanuelle Charpentier, who received the Nobel Prize in Chemistry in 2020 for their work. CRISPR works by using a guide RNA to direct the Cas9 enzyme to a specific location in the genome, where it makes a precise cut. This technology has potential applications in treating genetic diseases, developing drought-resistant crops, and controlling disease-carrying insects.\n\nQuestion: Who developed CRISPR-Cas9 for genome editing and what recognition did they receive?",
+    "expected": "Jennifer Doudna, Emmanuelle Charpentier, Nobel Prize, Chemistry, 2020"
+  },
+  {
+    "id": 29,
+    "family": "rag",
+    "prompt": "Document: The Dead Sea, located on the border between Israel, Jordan, and the West Bank, is the lowest point on Earth's surface at approximately 430 meters below sea level. Its water is nearly 10 times saltier than ordinary ocean water, with a salinity of about 34 percent. This extreme salinity means that no fish or aquatic plants can survive in it, giving the sea its name. However, the high salt content allows swimmers to float effortlessly on the surface. The Dead Sea is also known for its mineral-rich mud, which has been used for therapeutic purposes for thousands of years.\n\nQuestion: Why is the Dead Sea called the Dead Sea, and how salty is it?",
+    "expected": "no fish, no aquatic plants, 34 percent salinity, 10 times saltier"
+  },
+  {
+    "id": 30,
+    "family": "rag",
+    "prompt": "Document: The Aurora Borealis, or Northern Lights, is a natural light display predominantly seen in high-latitude regions around the Arctic. It occurs when charged particles from the sun, carried by the solar wind, interact with gases in Earth's atmosphere. The particles are channeled toward the poles by Earth's magnetic field. When they collide with oxygen atoms, they produce green and red lights, while collisions with nitrogen produce blue and purple hues. The best time to observe the Northern Lights is during the winter months when nights are longest, with peak activity occurring during periods of high solar activity in the 11-year solar cycle.\n\nQuestion: What causes the Aurora Borealis and what determines its colors?",
+    "expected": "charged particles, solar wind, magnetic field, oxygen green red, nitrogen blue purple"
+  }
+]
