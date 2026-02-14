@@ -93,6 +93,7 @@ def generate(
     temperature: float = 0.7,
     top_p: float = 0.9,
     seed: int | None = None,
+    do_sample: bool | None = None,
 ) -> str:
     """Generate text from a prompt.
 
@@ -104,6 +105,7 @@ def generate(
         temperature: Sampling temperature (higher = more random).
         top_p: Nucleus sampling probability.
         seed: Optional random seed for this generation call.
+        do_sample: If True, sample; if False, greedy decode. If None, use temperature > 0.
 
     Returns:
         Generated text (prompt removed).
@@ -117,21 +119,29 @@ def generate(
     if seed is not None:
         torch.manual_seed(seed)
 
+    # Greedy when temperature 0 or explicitly requested
+    if do_sample is None:
+        do_sample = temperature > 0
+
     # Tokenize input
     inputs = tokenizer(prompt, return_tensors="pt", padding=True, truncation=True, max_length=2048)
     inputs = {k: v.to(model.device) for k, v in inputs.items()}
 
+    gen_kwargs = {
+        "max_new_tokens": max_tokens,
+        "pad_token_id": tokenizer.pad_token_id,
+        "eos_token_id": tokenizer.eos_token_id,
+    }
+    if do_sample:
+        gen_kwargs["temperature"] = temperature
+        gen_kwargs["do_sample"] = True
+        gen_kwargs["top_p"] = top_p
+    else:
+        gen_kwargs["do_sample"] = False
+
     # Generate
     with torch.no_grad():
-        outputs = model.generate(
-            **inputs,
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            do_sample=True,
-            top_p=top_p,
-            pad_token_id=tokenizer.pad_token_id,
-            eos_token_id=tokenizer.eos_token_id,
-        )
+        outputs = model.generate(**inputs, **gen_kwargs)
 
     # Decode only new tokens (remove prompt)
     input_length = inputs["input_ids"].shape[1]

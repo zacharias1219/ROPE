@@ -7,6 +7,7 @@ generates a response, judges severity, and records results.
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import torch
@@ -15,6 +16,20 @@ from tqdm import tqdm
 from rope.defenses import DEFENSES
 from rope.judge import score_response
 from rope.models import MODELS, generate, load_model
+
+
+def _debug_log(stage: str, message: str, data: str | None = None, log_file=None) -> None:
+    """Print a debug message to stderr and optionally to a file."""
+    header = f"\n>>> [DEBUG: {stage}] {'=' * (50 - len(stage))}"
+    msg = f"{header}\n{message}"
+    if data:
+        msg += f"\n{data}"
+    msg += f"\n{'=' * 65}\n"
+    
+    print(msg, file=sys.stderr)
+    if log_file:
+        log_file.write(msg + "\n")
+        log_file.flush()
 
 
 def _save_checkpoint(results: list[dict], output_path: str) -> None:
@@ -56,6 +71,8 @@ def run_eval(
     reuse_judge_for_model: str | None = None,
     verbose: bool = False,
     resume: bool = False,
+    debug: bool = False,
+    max_attacks: int | None = None,
 ) -> list[dict]:
     """Run full ROPE evaluation.
 
@@ -70,6 +87,8 @@ def run_eval(
         reuse_judge_for_model: If set, reuse the judge model for this eval model (saves RAM).
         verbose: If True, save full debug info (defended prompt, raw judge output, full response).
         resume: If True, skip (model, defense) pairs already in the output file.
+        debug: If True, print per-attack per-stage debug info to stderr and log file.
+        max_attacks: If set, only evaluate the first N attacks per (model, defense) pair.
 
     Returns:
         List of result dicts.
@@ -84,12 +103,24 @@ def run_eval(
     # Set random seed for reproducibility
     torch.manual_seed(seed)
 
+    # Setup debug log file
+    log_file = None
+    if debug:
+        log_path = Path(output_path).with_suffix(".debug.log")
+        log_file = open(log_path, "w", encoding="utf-8")
+        print(f"Debug mode enabled. Logging to stderr and {log_path}")
+
     # Load data
     print("Loading tasks and attacks...")
     with open(tasks_path) as f:
         tasks = json.load(f)
     with open(attacks_path) as f:
         attacks = json.load(f)
+
+    # Slice attacks if max_attacks is set
+    if max_attacks:
+        attacks = attacks[:max_attacks]
+        print(f"  Limited to first {max_attacks} attacks.")
 
     # Build task lookup
     task_lookup = {t["id"]: t for t in tasks}
@@ -149,12 +180,20 @@ def run_eval(
             # Progress bar
             pbar = tqdm(attacks, desc=f"  {model_name}/{defense_name}", ncols=80)
 
-            for attack in pbar:
+            for idx, attack in enumerate(pbar):
                 # Get original task
                 task = task_lookup.get(attack["task_id"])
                 if task is None:
                     print(f"\n  Warning: Task {attack['task_id']} not found, skipping.")
                     continue
+
+                if debug:
+                    _debug_log(
+                        "ATTACK",
+                        f"Attack #{idx+1} | Type: {attack['type']} | Task ID: {attack['task_id']} | Goal: {attack['goal']}",
+                        f"Text: {attack['text'][:200]}...",
+                        log_file
+                    )
 
                 # Apply defense
                 try:
@@ -170,12 +209,28 @@ def run_eval(
                     print(f"\n  Warning: Defense failed: {e}")
                     defended_prompt = attack["text"]
 
+                if debug:
+                    _debug_log(
+                        "DEFENSE",
+                        f"Applied '{defense_name}'",
+                        f"Prompt: {defended_prompt[:300]}...",
+                        log_file
+                    )
+
                 # Generate response
                 try:
                     response = generate(model, tokenizer, defended_prompt, max_tokens=256, seed=seed)
                 except Exception as e:
                     print(f"\n  Warning: Generation failed: {e}")
                     response = "[ERROR]"
+
+                if debug:
+                    _debug_log(
+                        "MODEL",
+                        f"Response generated ({len(response)} chars)",
+                        f"Output: {response[:400]}...",
+                        log_file
+                    )
 
                 # Judge response
                 raw_judge = ""
@@ -186,11 +241,19 @@ def run_eval(
                         response=response,
                         judge_model=judge_model,
                         judge_tokenizer=judge_tokenizer,
-                        verbose=verbose,
+                        verbose=verbose or debug,
                     )
                 except Exception as e:
                     print(f"\n  Warning: Judging failed: {e}")
                     severity = 0  # Conservative default
+
+                if debug:
+                    _debug_log(
+                        "JUDGE",
+                        f"Severity: {severity}",
+                        f"Raw output: {raw_judge.strip()}",
+                        log_file
+                    )
 
                 # Record result
                 result = {
@@ -223,6 +286,9 @@ def run_eval(
 
     # Final save
     _save_checkpoint(results, output_path)
+
+    if log_file:
+        log_file.close()
 
     print(f"\n{'=' * 60}")
     print(f"Saved {len(results)} results to {output_path}")

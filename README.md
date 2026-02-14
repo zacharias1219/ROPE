@@ -82,6 +82,18 @@ Options:
 - `--defenses, -d`: Comma-separated defense names (default: none,delimiter,icl)
 - `--output, -o`: Output file path (default: results.json)
 - `--seed`: Random seed (default: 42)
+- `--debug, -D`: Enable stage-by-stage logging for debugging (to terminal and file)
+- `--max-attacks`: Limit number of attacks per pair (for quick debug)
+
+### Debugging Local Runs
+
+If you see 0% ASR or unexpected results, use the debug pipeline to see exactly what happens at each stage (Attack, Defense, Model, Judge).
+
+```bash
+rope demo --cpu --debug --max-attacks 3
+```
+
+For more details, see [docs/DEBUG.md](docs/DEBUG.md).
 
 ### Output Files
 

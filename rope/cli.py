@@ -81,6 +81,17 @@ def run(
         "--resume",
         help="Resume from checkpoint: skip (model, defense) pairs already in the output file",
     ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        "-D",
+        help="Enable per-stage debug logging to terminal and file",
+    ),
+    max_attacks: int = typer.Option(
+        None,
+        "--max-attacks",
+        help="Limit number of attacks to evaluate (useful for quick debug runs)",
+    ),
 ) -> None:
     """Run full ROPE evaluation.
 
@@ -88,6 +99,7 @@ def run(
         rope run --models llama2-7b --defenses none,delimiter
         rope run --models phi2 --judge phi2 --verbose
         rope run --resume -o results.json
+        rope run --debug --max-attacks 3
     """
     # Parse inputs
     model_list = [m.strip() for m in models.split(",")]
@@ -132,6 +144,8 @@ def run(
     typer.echo(f"Judge: {judge}")
     typer.echo(f"Output: {output}")
     typer.echo(f"Verbose: {verbose}")
+    typer.echo(f"Debug: {debug}")
+    typer.echo(f"Max Attacks: {max_attacks}")
     typer.echo(f"Resume: {resume}")
     typer.echo(f"Seed: {seed}")
     typer.echo("=" * 70 + "\n")
@@ -147,6 +161,8 @@ def run(
         judge_model_name=judge,
         verbose=verbose,
         resume=resume,
+        debug=debug,
+        max_attacks=max_attacks,
     )
 
     # Compute and display metrics
@@ -176,6 +192,17 @@ def demo(
         "-v",
         help="Save full debug info (defended prompts, raw judge output, full responses)",
     ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        "-D",
+        help="Enable per-stage debug logging to terminal and file",
+    ),
+    max_attacks: int = typer.Option(
+        None,
+        "--max-attacks",
+        help="Override number of attacks (default 10 for --cpu, 20 for GPU)",
+    ),
 ) -> None:
     """Run quick demo (1 model, 2 defenses, first 20 attacks).
 
@@ -184,11 +211,14 @@ def demo(
     Example:
         rope demo
         rope demo --cpu
-        rope demo --verbose
+        rope demo --debug --max-attacks 3
     """
     import torch
 
     typer.echo("Running ROPE demo...\n")
+    typer.echo(f"Debug: {debug}")
+    if max_attacks:
+        typer.echo(f"Max Attacks: {max_attacks}")
 
     tasks_path = "data/tasks.json"
     attacks_path = "data/attacks.json"
@@ -202,27 +232,22 @@ def demo(
         typer.echo(f"Error: Attacks file not found: {attacks_path}", err=True)
         sys.exit(1)
 
-    with open(attacks_path) as f:
-        all_attacks = json.load(f)
-
     if cpu:
         # CPU-only: one small model (Phi-2), reused as judge. Fewer attacks to keep time reasonable.
         if not torch.cuda.is_available():
             typer.echo("CPU mode: using Phi-2 only (loaded once for both eval and judge).\n")
-        demo_attacks = all_attacks[:10]
-        demo_attacks_path = "data/attacks_demo.json"
-        with open(demo_attacks_path, "w") as f:
-            json.dump(demo_attacks, f)
+        n_attacks = max_attacks if max_attacks else 10
         results = run_eval(
             model_names=["phi2"],
             defense_names=["none"],
             output_path="demo_results.json",
-            attacks_path=demo_attacks_path,
+            attacks_path=attacks_path,
             judge_model_name="phi2",
             reuse_judge_for_model="phi2",
             verbose=verbose,
+            debug=debug,
+            max_attacks=n_attacks,
         )
-        Path(demo_attacks_path).unlink(missing_ok=True)
     else:
         # GPU demo: llama2-7b + judge llama3-8b, 20 attacks, 2 defenses
         if not torch.cuda.is_available():
@@ -231,18 +256,16 @@ def demo(
                 "'paging file too small'. For a CPU-only demo run: rope demo --cpu\n",
                 err=True,
             )
-        demo_attacks = all_attacks[:20]
-        demo_attacks_path = "data/attacks_demo.json"
-        with open(demo_attacks_path, "w") as f:
-            json.dump(demo_attacks, f)
+        n_attacks = max_attacks if max_attacks else 20
         results = run_eval(
             model_names=["llama2-7b"],
             defense_names=["none", "delimiter"],
             output_path="demo_results.json",
-            attacks_path=demo_attacks_path,
+            attacks_path=attacks_path,
             verbose=verbose,
+            debug=debug,
+            max_attacks=n_attacks,
         )
-        Path(demo_attacks_path).unlink(missing_ok=True)
 
     # Display results
     metrics = compute_metrics(results)
