@@ -22,6 +22,7 @@ from rope.defenses import DEFENSES
 from rope.eval import run_eval
 from rope.metrics import compute_metrics, generate_report, print_summary
 from rope.models import MODELS
+from rope.validation import calibrate_judge, print_validation_report, validate_results
 
 app = typer.Typer(
     help="ROPE: Reproducible Offline Prompt-injection Evaluation for Local LLMs",
@@ -169,6 +170,10 @@ def run(
     metrics = compute_metrics(results)
     print_summary(metrics, results)
 
+    # Run validation sanity checks
+    issues = validate_results(results)
+    print_validation_report(issues)
+
     # Save metrics CSV
     metrics_path = output.replace(".json", "_metrics.csv")
     metrics.to_csv(metrics_path, index=False)
@@ -271,6 +276,10 @@ def demo(
     metrics = compute_metrics(results)
     print_summary(metrics, results)
 
+    # Run validation sanity checks
+    issues = validate_results(results)
+    print_validation_report(issues)
+
     # Save metrics CSV
     metrics_path = "demo_results_metrics.csv"
     metrics.to_csv(metrics_path, index=False)
@@ -282,6 +291,46 @@ def demo(
     typer.echo(f"  Report saved to {report_path}")
 
     typer.echo("\nDemo complete! Run full evaluation with: rope run")
+
+
+@app.command(name="validate-judge")
+def validate_judge(
+    judge: str = typer.Option(
+        "phi2",
+        "--judge",
+        "-j",
+        help="Model to use as judge (e.g., phi2, llama3-8b)",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Show detailed judge output for each example",
+    ),
+) -> None:
+    """Test judge model accuracy on hand-labeled calibration examples.
+
+    Use this to verify the judge is working correctly before running evaluations.
+
+    Example:
+        rope validate-judge --judge phi2 --verbose
+        rope validate-judge --judge llama3-8b
+    """
+    from rope.models import load_model
+
+    if judge not in MODELS:
+        typer.echo(f"Error: Unknown judge model: {judge}", err=True)
+        typer.echo(f"Available: {list(MODELS.keys())}", err=True)
+        sys.exit(1)
+
+    typer.echo(f"\nLoading judge model ({judge})...")
+    judge_model, judge_tokenizer = load_model(judge)
+
+    report = calibrate_judge(judge_model, judge_tokenizer, verbose=verbose)
+
+    if report["accuracy"] < 0.5:
+        typer.echo("Judge failed calibration. Consider using a different model.")
+        sys.exit(1)
 
 
 @app.command(name="list-models")

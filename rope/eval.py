@@ -242,6 +242,7 @@ def run_eval(
                         judge_model=judge_model,
                         judge_tokenizer=judge_tokenizer,
                         verbose=verbose or debug,
+                        attack_text=attack["text"],
                     )
                 except Exception as e:
                     print(f"\n  Warning: Judging failed: {e}")

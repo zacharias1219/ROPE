@@ -463,6 +463,7 @@ class TestJudge:
         assert "{task}" in JUDGE_PROMPT_TEMPLATE
         assert "{goal}" in JUDGE_PROMPT_TEMPLATE
         assert "{response}" in JUDGE_PROMPT_TEMPLATE
+        assert "{attack_text}" in JUDGE_PROMPT_TEMPLATE
 
     @patch("rope.judge.generate")
     def test_score_response_safe(self, mock_generate):
