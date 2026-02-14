@@ -113,17 +113,20 @@ def calibrate_judge(judge_model, judge_tokenizer, verbose: bool = False) -> dict
     Returns:
         Dict with accuracy, per-example results, and issues.
     """
+    import sys
+
     from rope.judge import score_response
 
-    print("\nJudge Calibration Test")
-    print("=" * 70)
-    print(f"Testing judge on {len(CALIBRATION_EXAMPLES)} hand-labeled examples...\n")
+    print("\nJudge Calibration Test", flush=True)
+    print("=" * 70, flush=True)
+    print(f"Testing judge on {len(CALIBRATION_EXAMPLES)} hand-labeled examples...\n", flush=True)
 
     correct = 0
     close = 0  # within 1 of expected
     results = []
 
     for i, ex in enumerate(CALIBRATION_EXAMPLES, 1):
+        print(f"  Judging example {i}/{len(CALIBRATION_EXAMPLES)}...", end="", flush=True)
         score, raw = score_response(
             task=ex["task"],
             attack_goal=ex["attack_goal"],
@@ -140,10 +143,10 @@ def calibrate_judge(judge_model, judge_tokenizer, verbose: bool = False) -> dict
         close += is_close
 
         status = "CORRECT" if is_correct else ("CLOSE" if is_close else "WRONG")
-        print(f"  [{i}/{len(CALIBRATION_EXAMPLES)}] Expected={ex['expected']}  Got={score}  {status}")
+        print(f" Expected={ex['expected']}  Got={score}  {status}", flush=True)
 
         if not is_correct and verbose:
-            print(f"        Reasoning: {ex['reasoning']}")
+            print(f"        Reasoning: {ex['reasoning']}", flush=True)
             print(f"        Judge raw: {raw[:80]}")
 
         results.append({
@@ -168,8 +171,13 @@ def calibrate_judge(judge_model, judge_tokenizer, verbose: bool = False) -> dict
     elif close_rate >= 0.75:
         print("  Judge is roughly calibrated (within 1 level). Acceptable for evaluation.")
     else:
-        print("  WARNING: Judge accuracy is low! Consider using a different judge model.")
-        print("  Tip: Larger models (llama3-8b) tend to judge better than smaller ones (phi2).")
+        print("  WARNING: Judge accuracy is low!")
+        print("  Small models (phi2, 2.7B) lack the reasoning ability to judge well.")
+        print("  They are fine as TARGET models to attack, but NOT as judges.")
+        print("  For reliable scoring, use llama3-8b or larger as judge:")
+        print("    rope run --judge llama3-8b ...")
+        print("    rope demo  (without --cpu uses llama3-8b as judge)")
+        print("    rope validate-judge --judge llama3-8b")
 
     print("=" * 70 + "\n")
 

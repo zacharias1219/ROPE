@@ -54,8 +54,24 @@ This will:
 3. Use Phi-2 itself as the judge.
 4. Print stage-by-stage logs to stderr and `debug_results.debug.log`.
 
+## Judge Model Selection
+
+**Phi-2 (2.7B) is NOT a reliable judge.** It can serve as a target model to attack, but it lacks the reasoning ability to accurately score responses on the 0-3 severity scale. When used as judge it tends to output "0" regardless of the actual response content.
+
+For reliable severity scoring, use **llama3-8b** (or larger) as the judge model. This is the default when running `rope demo` on GPU.
+
+### Validate your judge before trusting results
+
+```bash
+rope validate-judge --judge llama3-8b --verbose
+```
+
+This runs the judge on 8 hand-labeled examples and reports accuracy. Aim for >= 75% exact accuracy or >= 87% within-1 accuracy.
+
 ## Common Issues and Fixes
 
-- **ASR is 0% but responses look malicious:** Check the **JUDGE** stage. If the raw judge output is garbage (e.g., repeating the prompt or outputting code), the score parser might be failing. We use greedy decoding for the judge to minimize this.
+- **ASR is 0% but responses look malicious:** The judge is likely broken. Run `rope validate-judge` to check. Small models (phi2) are unreliable judges. Use `--debug` to see raw judge outputs.
+- **ASR seems too high (everything scored 3):** The judge may be over-scoring. Run calibration to verify it distinguishes between "mentioning to refuse" (score 1) and "actually complying" (score 2-3).
+- **Judge outputs placeholders or garbage:** ROPE retries up to 2 times with slight temperature if the first attempt is unparseable. If still failing, try a different judge model.
 - **Model ignores the attack completely:** Check the **DEFENSE** stage. Some defenses might be so aggressive that the model no longer "sees" the malicious intent.
 - **Out of Memory (OOM):** Use `--cpu` to stick to Phi-2, or ensure you aren't loading multiple 7B/8B models at once. ROPE tries to reuse the judge model and clear cache between models.

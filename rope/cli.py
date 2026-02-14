@@ -240,7 +240,12 @@ def demo(
     if cpu:
         # CPU-only: one small model (Phi-2), reused as judge. Fewer attacks to keep time reasonable.
         if not torch.cuda.is_available():
-            typer.echo("CPU mode: using Phi-2 only (loaded once for both eval and judge).\n")
+            typer.echo("CPU mode: using Phi-2 only (loaded once for both eval and judge).")
+            typer.echo(
+                "NOTE: Phi-2 (2.7B) is a weak judge. Severity scores may be inaccurate.\n"
+                "      Use --debug to inspect raw judge outputs. For reliable results,\n"
+                "      run on GPU with llama3-8b as judge (rope demo without --cpu).\n"
+            )
         n_attacks = max_attacks if max_attacks else 10
         results = run_eval(
             model_names=["phi2"],
